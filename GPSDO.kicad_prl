@@ -3,7 +3,12 @@
     "active_layer": 39,
     "active_layer_preset": "",
     "auto_track_width": true,
-    "hidden_nets": [],
+    "hidden_nets": [
+      "+5VA",
+      "GNDA",
+      "GND",
+      "+5VD"
+    ],
     "high_contrast_mode": 0,
     "net_color_mode": 1,
     "opacity": {
