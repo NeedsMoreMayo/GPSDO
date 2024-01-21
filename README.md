@@ -16,4 +16,4 @@ The corrections are fed to a 18-bit DAC which corrects the voltage control of th
 ### TIC
 
 ### Output stage
-The output driver and clock dividers were copied from Bertrand Zauhar's GPSDO design. The RS422 line driver is changed to DS34C87T because of rise time/propagation delay considerations. Coupling capacitors are High-Voltage devices.
+The output driver and clock dividers were copied from Bertrand Zauhar's GPSDO design (https://ve2zaz.net/GPS_Std/Downloads/VE2ZAZ_GPS_Derived_Std_QEX_09_10_2006.pdf). The RS422 line driver is changed to DS34C87T because of rise time/propagation delay considerations. Coupling capacitors are High-Voltage devices.
