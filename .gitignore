@@ -4,3 +4,5 @@
 ._*
 # Icon?
 Thumbs.db
+*-backups
+*.zip
