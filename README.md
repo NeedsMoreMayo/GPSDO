@@ -11,7 +11,7 @@ The OCXO clock is fed to the uC as external clock. This way the control runs syn
 - the number of pulses contained within 1 sec of PPS. We can count this with the TCD or TCB counter.
 - the fraction of the XO pulse that runs out of phase with the PPS. In other words, the out-of-phaseness of the PPS with the rest of the system. We measure this with a TIC (Time Interpolation Counter)
 
-The corrections are fed to a 18-bit DAC which corrects the voltage control of the OCXO. The phase of the XO isn't adjusted, and doesn't need to be. It doesn't matter what the phase difference is, if the 1 PPS envelope contains exactly 10M clocks.
+The corrections are fed to a 18-bit DAC which corrects the voltage control of the OCXO. The phase of the XO isn't adjusted, and doesn't need to be. The 1 PPS envelope contains exactly 10M clocks, and the uC is always synced to the clock.
 
 ### TIC
 
