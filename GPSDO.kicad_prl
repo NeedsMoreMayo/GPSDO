@@ -1,11 +1,9 @@
 {
   "board": {
-    "active_layer": 44,
+    "active_layer": 0,
     "active_layer_preset": "",
     "auto_track_width": true,
     "hidden_nets": [
-      "+5VA",
-      "GNDA",
       "GND",
       "+5VD"
     ],
