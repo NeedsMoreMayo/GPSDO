@@ -17,3 +17,11 @@ The corrections are fed to a 18-bit DAC which corrects the voltage control of th
 
 ### Output stage
 The output driver and clock dividers were copied from Bertrand Zauhar's GPSDO design (https://ve2zaz.net/GPS_Std/Downloads/VE2ZAZ_GPS_Derived_Std_QEX_09_10_2006.pdf). The RS422 line driver is changed to DS34C87T because of rise time/propagation delay considerations. Coupling capacitors are High-Voltage devices.
+
+## Parts
+- GPS module: GY-GPSV3 NEO-M8N GPS Module from aliexpress.
+- OCXO: OC5SC25
+- uC: AVR32DB28
+- Output line driver: DS34C87T
+- LDO: 2 x AZ1117, one for OCXO and one for digital
+- DAC: AD5680
