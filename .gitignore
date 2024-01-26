@@ -7,3 +7,11 @@ Thumbs.db
 *-backups
 *.zip
 #auto_saved_files#
+.dep/
+*.lst
+*.o
+*.eep
+*.lss
+*.map
+*.sym
+a.out
