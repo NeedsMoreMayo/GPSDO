@@ -24,7 +24,7 @@
 #define TOUCH_SS_PIN	3
 
 //PORT D
-#define IPOL_PIN		1
+#define IPOL_PIN		1	//ADC
 #define DAC_SS_PIN		2
 #define LED_PIN			3
 #define CUSTOM_OUT_PIN	4
@@ -70,11 +70,15 @@ uint16_t adc_sample(){
 }
 
 void TOGGLE_LED(){
-	uint8_t status = PORTD.OUT;
-	PORTD.OUT = status ^ (1 << LED_PIN);
+	PORTD.OUTTGL = 1 << LED_PIN;	//out toggle
 }
 
 void ADC_init(){
+	//PORTD1 is Time Interpolation pin
+	//tau = 150 * 680 ~= 100ns
+	//V = 5V, so at tau we reach max 0.63*5 = 3.15V
+	//set max resolution to 4.096V, the diff is 0.946V
+	//which is just below 25% of our max value, so we lose 0.5 bits precision
 	VREF.ADC0REF = VREF_REFSEL_4V096_gc;
 	ADC0.MUXPOS = ADC_MUXPOS_AIN2_gc;
 	ADC0.CTRLB= ADC_SAMPNUM_ACC16_gc;
