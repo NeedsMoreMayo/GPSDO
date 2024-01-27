@@ -1,4 +1,7 @@
+#define F_CPU 10000000ul
+
 #include <avr/io.h>
+#include <util/delay.h>		//temporary sin
 //#include <math.h>
 
 
@@ -45,13 +48,15 @@ void DAC_init(void);
 void LCD_init(void);
 void TOUCH_init(void);
 uint16_t adc_sample(void);
+void TOGGLE_LED(void);
 
 
 int main(void){
 	PORTS_init();
 	ADC_init();
     while (1){
-		
+		TOGGLE_LED();
+		_delay_ms(1000);
     }
 }
 
@@ -62,6 +67,11 @@ uint16_t adc_sample(){
 	/*Right shift result by 4 due to 16 over samples*/
 	res=ADC0.RES>>4;
 	return res;
+}
+
+void TOGGLE_LED(){
+	uint8_t status = PORTD.OUT;
+	PORTD.OUT = status ^ (1 << LED_PIN);
 }
 
 void ADC_init(){
