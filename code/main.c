@@ -1,5 +1,6 @@
 //F_CPU defined in makefile
 //#define F_CPU 10000000ul
+#define USART2_BAUD_RATE(BAUD_RATE)     ((float)(64 * F_CPU / (16 * (float)BAUD_RATE)) + 0.5) //TODO: check CLK settings for this calc
 
 #include <avr/io.h>
 #include <util/delay.h>		//temporary sin
@@ -57,10 +58,16 @@ void TOGGLE_LED(void);
 
 volatile uint8_t ADC_result_available = 0;
 volatile adc_result_t ADC_result = 0;
+#define RXBUF_len 256
+volatile uint8_t RXBUF[RXBUF_len];
+volatile uint16_t RXBUF_idx = 0;
 
 int main(void){
+	cli(); //disable interrupts when enabling interrupt handlers
 	PORTS_init();
 	ADC_init();
+	TOUCH_IRQ_init();
+	sei();//enable interrupts
     while (1){
 		TOGGLE_LED();
 		_delay_ms(1000);
@@ -85,6 +92,17 @@ ISR(PORTC_PORT_vect){
 		//react
 		PORTC.INTFLAGS = 1 << TOUCH_IRQ_PIN;
 	}
+}
+
+ISR(USART0_RXC_vect){
+	//USART2.STATUS = 1 << USART_RXCIF_bp; //clear RX Complete Interrupt Flag
+	//RXCIF is read-only and is cleared by reading the RXDATA register
+	RXBUF[RXBUF_idx++] = USART0.RXDATAL;
+		if (RXBUF_idx >= RXBUF_len) RXBUF_idx =0;
+}
+
+ISR(USART0_TXC_vect){
+	USART2.STATUS = 1 << USART_TXCIF_bp; //clear TX Complete Interrupt Flag
 }
 
 void TOGGLE_LED(){
@@ -133,15 +151,23 @@ void TOUCH_IRQ_init(){
 
 void PORTS_init(){
 	//LCD_SS, LCD_RESET, LCD_DCRS, LCD_MOSI, LCD_SCK and TOUCH_SS are output on PORTA
-	PORTA.DIR = 1 << LCD_SS_PIN | 1 << LCD_RESET_PIN | 1 << LCD_DCRS_PIN | 1 << LCD_MOSI_PIN | 1 << LCD_SCK_PIN | 1 << TOUCH_SS_PIN;
+	PORTA.DIR =   (1 << LCD_SS_PIN)
+				| (1 << LCD_RESET_PIN)
+				| (1 << LCD_DCRS_PIN)
+				| (1 << LCD_MOSI_PIN)
+				| (1 << LCD_SCK_PIN)
+				| (1 << TOUCH_SS_PIN);
 	PORTA.OUT = 0x00;
 	
 	//DAC_MOSI (TOUCH_MOSI), DAC_SCK (TOUCH_SCK) are output on PORTC
-	PORTC.DIR = 1 << DAC_MOSI_PIN | 1 << DAC_SCK_PIN;
+	PORTC.DIR =   (1 << DAC_MOSI_PIN)
+				| (1 << DAC_SCK_PIN);
 	PORTC.OUT = 0x00;
 	
 	//LED, DAC_SS and CUSTOM_OUT are output on PORTD
-	PORTD.DIR = 1 << LED_PIN | 1 << DAC_SS_PIN | 1 << CUSTOM_OUT_PIN;
+	PORTD.DIR =   (1 << LED_PIN)
+				| (1 << DAC_SS_PIN)
+				| (1 << CUSTOM_OUT_PIN);
 	PORTD.OUT = 0x00;
 	
 	//GPS_TXD is output on PORTD
@@ -149,3 +175,16 @@ void PORTS_init(){
 	PORTF.OUT = 0x00;
 }
 
+void USART2_init(void){
+	//PF0 = TXD
+	//PF1 = RXD
+	//9600 baud, 8 bits, no parity bit, 1 stop bit
+	// CMODE=Async, PMODE=Parity Disabled, SBMODE=1 stop bit, CHSIZE=8 bits/char
+	PORTMUX.USARTROUTEA &= ~(3 << PORTMUX_USART2_0_bp);	//clr bits 4 and 5
+    USART2.CTRLA = (1 << USART_RXCIE_bp) | (1 << USART_TXCIE_bp); //  RX Complete Interrupt Enable,  TX Complete Interrupt Enable
+    USART2.CTRLB = (1 << USART_RXEN_bp) | (1 << USART_TXEN_bp) | (1 << USART_RXMODE_0_bp); // USART_RXEN = RX enable, USART_TXEN = TX enable, USART_RXMODE_0_bm = normal speed mode
+	USART2.CTRLC = USART_CMODE_ASYNCHRONOUS_gc | USART_PMODE_DISABLED_gc | USART_SBMODE_1BIT_gc | USART_CHSIZE_8BIT_gc; 
+	//17.3.3  Default pins for TXD RXD .. PF2 and PF3 not on device
+    USART2.BAUD = (uint16_t)(USART2_BAUD_RATE(9600));
+	USART2.STATUS = 1 << USART_TXCIF_bp; //clear Transmit Complete Interrupt Flag
+}
