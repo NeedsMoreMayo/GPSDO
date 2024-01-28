@@ -1,4 +1,5 @@
-#define F_CPU 10000000ul
+//F_CPU defined in makefile
+//#define F_CPU 10000000ul
 
 #include <avr/io.h>
 #include <util/delay.h>		//temporary sin
@@ -24,7 +25,7 @@
 #define TOUCH_SS_PIN	3
 
 //PORT D
-#define IPOL_PIN		1	//ADC
+#define IPOL_PIN		1	//ADC0 AIN1
 #define DAC_SS_PIN		2
 #define LED_PIN			3
 #define CUSTOM_OUT_PIN	4
@@ -44,6 +45,7 @@ void USART2_init(void);
 void SPI0_init(void);
 void SPI1_init(void);
 void ADC_init(void);
+void ADC_start(void);
 void DAC_init(void);
 void LCD_init(void);
 void TOUCH_init(void);
@@ -75,14 +77,34 @@ void TOGGLE_LED(){
 
 void ADC_init(){
 	//PORTD1 is Time Interpolation pin
+    //Disable digital input buffer .. 18.3.2.1 and 18.3.2.3
+	//to reduce noise
+    PORTD.PIN1CTRL &= ~PORT_ISC_gm; //INTDISABLE
+    PORTD.PIN1CTRL |= PORT_ISC_INPUT_DISABLE_gc; //INPUT_DISABLE
+    PORTD.PIN1CTRL &= ~PORT_PULLUPEN_bm; //Disable pull-up resistor
 	//tau = 150 * 680 ~= 100ns
 	//V = 5V, so at tau we reach max 0.63*5 = 3.15V
-	//set max resolution to 4.096V, the diff is 0.946V
-	//which is just below 25% of our max value, so we lose 0.5 bits precision
-	VREF.ADC0REF = VREF_REFSEL_4V096_gc;
-	ADC0.MUXPOS = ADC_MUXPOS_AIN2_gc;
-	ADC0.CTRLB= ADC_SAMPNUM_ACC16_gc;
-	ADC0.CTRLA= ADC_ENABLE_bm;
+	//The board has the footprint for an external Vref at PD7
+	//If populated, the ADC ref V is:
+	VREF.ADC0REF = VREF_REFSEL_VREFA_gc;
+	//If not populated, the best ADC ref V is 4.096V, the diff is 0.946V
+	//which is just below 25% of our max value, so we lose 0.5 bits precision:
+	//VREF.ADC0REF = VREF_REFSEL_4V096_gc;
+	//
+	//We measure time IPOL at pin 7, ADC0 AIN1
+	ADC0.MUXPOS = ADC_MUXPOS_AIN1_gc;
+	//TODO: figure out CLK_PER
+	ADC0.CTRLC = ADC_PRESC_DIV4_gc;
+	//Just 1 sample, no accumulation
+	ADC0.CTRLB= ADC_WINCM_NONE_gc;
+	//ENable ADC in 12-bit mode
+	ADC0.CTRLA= ADC_ENABLE_bm | ADC_RESSEL_12BIT_gc;
+}
+
+void ADC_start(){
+	//start conversion
+	ADC0.COMMAND = ADC_STCONV_bm;
+	//TODO: change pin to digital output and write 0 to discharge the capacitor
 }
 
 void PORTS_init(){
