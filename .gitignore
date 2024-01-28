@@ -15,3 +15,5 @@ Thumbs.db
 *.map
 *.sym
 a.out
+*auto_saved_files*
+fp-info-cache
