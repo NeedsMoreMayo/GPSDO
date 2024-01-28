@@ -3,6 +3,7 @@
 
 #include <avr/io.h>
 #include <util/delay.h>		//temporary sin
+#include <avr/interrupt.h>
 //#include <math.h>
 
 
@@ -38,6 +39,7 @@
 #define GPS_RXD_PIN		1
 #define RESET_PIN		6
 
+#define adc_result_t	uint16_t
 
 
 void PORTS_init(void);
@@ -52,6 +54,8 @@ void TOUCH_init(void);
 uint16_t adc_sample(void);
 void TOGGLE_LED(void);
 
+volatile uint8_t ADC_result_available = 0;
+volatile adc_result_t ADC_result = 0;
 
 int main(void){
 	PORTS_init();
@@ -59,20 +63,24 @@ int main(void){
     while (1){
 		TOGGLE_LED();
 		_delay_ms(1000);
+		if(ADC_result_available){
+			//process sample
+			
+		}
     }
 }
 
-uint16_t adc_sample(){
-	uint16_t res;
-	ADC0.COMMAND = ADC_STCONV_bm;
-	while(!(ADC0.INTFLAGS & ADC_RESRDY_bm));
-	/*Right shift result by 4 due to 16 over samples*/
-	res=ADC0.RES>>4;
-	return res;
+ISR(ADC0_RESRDY_vect){
+    // Store the ADC result and notify the main loop
+    ADC_result = ADC0.RESL;
+    ADC_result_available  = 1;
+
+    // The Interrupt flag has to be cleared manually
+    ADC0.INTFLAGS = ADC_RESRDY_bm;
 }
 
 void TOGGLE_LED(){
-	PORTD.OUTTGL = 1 << LED_PIN;	//out toggle
+	PORTD.OUTTGL = 1 << LED_PIN;
 }
 
 void ADC_init(){
