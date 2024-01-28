@@ -25,3 +25,7 @@ The output driver and clock dividers were copied from Bertrand Zauhar's GPSDO de
 - Output line driver: DS34C87T
 - LDO: 2 x AZ1117, one for OCXO and one for digital
 - DAC: AD5680
+
+## The AVR-DB uC
+I originally planned on building it with an atmega. Then changed my mind to an STM32 with ChibiOS. Now I've chosen AVR32DB28. I hope to become familiar enough with it to help porting ChibiOS to the AVR-DX family.
+
