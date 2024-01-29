@@ -1,11 +1,13 @@
 //F_CPU defined in makefile
 //#define F_CPU 10000000ul
-#define USART2_BAUD_RATE(BAUD_RATE)     ((float)(64 * F_CPU / (16 * (float)BAUD_RATE)) + 0.5) //TODO: check CLK settings for this calc
 
 #include <avr/io.h>
 #include <util/delay.h>		//temporary sin
 #include <avr/interrupt.h>
 //#include <math.h>
+
+#include "uart.h"
+#include "adc.h"
 
 
 //PORT A
@@ -40,42 +42,23 @@
 #define GPS_RXD_PIN		1
 #define RESET_PIN		6
 
-#define adc_result_t	uint16_t
-
-
 void PORTS_init(void);
-void USART2_init(void);
-void USART2_disable_TX(void);
-void USART2_enable_TX(void);
-void USART2_send_string(uint8_t*, uint16_t);
 void SPI0_init(void);
 void SPI1_init(void);
-void ADC_init(void);
-void ADC_start(void);
 void DAC_init(void);
 void LCD_init(void);
 void TOUCH_and_DAC_SPI_init(void);
 void TOUCH_IRQ_init(void);
-uint16_t adc_sample(void);
 void TOGGLE_LED(void);
 
-volatile uint8_t ADC_result_available = 0;
-volatile adc_result_t ADC_result = 0;
-
-#define RXBUF_len 256
-volatile uint8_t RXBUF[RXBUF_len];
-volatile uint16_t RXBUF_idx = 0;
-
-#define TXBUF_len 256
-volatile uint8_t TXBUF[TXBUF_len];
-volatile uint16_t TXBUF_idx = 0;
-volatile uint8_t transmitting = 0;
+extern uint8_t ADC_result_available;
 
 int main(void){
 	cli(); //disable interrupts when enabling interrupt handlers
 	PORTS_init();
 	ADC_init();
 	TOUCH_IRQ_init();
+	USART2_init();
 	sei();//enable interrupts
     while (1){
 		TOGGLE_LED();
@@ -87,15 +70,6 @@ int main(void){
     }
 }
 
-ISR(ADC0_RESRDY_vect){
-    // Store the ADC result and notify the main loop
-    ADC_result = ADC0.RESL;
-    ADC_result_available  = 1;
-    // The Interrupt flag has to be cleared manually
-	// According to 33.5.12 the flag is already cleared by reading the ADC result (?)
-    ADC0.INTFLAGS = ADC_RESRDY_bm;
-}
-
 ISR(PORTC_PORT_vect){
 	if(PORTC_INTFLAGS & (1 << TOUCH_IRQ_PIN)){
 		//react
@@ -103,98 +77,9 @@ ISR(PORTC_PORT_vect){
 	}
 }
 
-//Data Register Empty interrupt
-//The entire frame in the Transmit Shift register has been shifted out and there
-//are no new data in the transmit buffer (TXCIE)
-ISR(USART2_DRE_vect){
-	if(transmitting == 0){
-		//previous char must've been last one
-		USART2_disable_TX();
-	}
-	uint8_t character = TXBUF[TXBUF_idx++];
-	if (TXBUF_idx >= TXBUF_len) TXBUF_idx = 0;
-	USART1.TXDATAL = character;
-	if(character == '\0'){
-		//end of transmission
-		transmitting = 0;
-	}
-}
-
-//Receive Complete interrupt
-//There is unread data in the receive buffer (RXCIE)
-//Receive of Start-of-Frame detected (RXSIE)
-//Auto-Baud Error/ISFIF flag set (ABEIE)
-ISR(USART2_RXC_vect){
-	//The NEO-M8N sends data as strings, terminated by 0Dh,0Ah and beginning with $G
-	
-	//USART2.STATUS = 1 << USART_RXCIF_bp; //clear RX Complete Interrupt Flag
-	//RXCIF is read-only and is cleared by reading the RXDATA register
-	RXBUF[RXBUF_idx++] = USART0.RXDATAL;
-	if (RXBUF_idx >= RXBUF_len) RXBUF_idx = 0;
-}
-
-//Transmit Complete interrupt
-//The entire frame in the Transmit Shift register has been shifted out and there
-//are no new data in the transmit buffer (TXCIE)
-/*
-ISR(USART2_TXC_vect){
-	USART2.STATUS = 1 << USART_TXCIF_bp; //clear TX Complete Interrupt Flag
-}
-*/
-
-void USART2_disable_TX(){
-    USART2.CTRLB &= ~(1 << USART_TXEN_bp);	// TX enable OFF
-    USART2.CTRLA &= ~(1 << USART_DREIE_bp);	// Data Register Empty Interrupt Enable OFF
-}
-
-void USART2_enable_TX(){
-    USART2.CTRLB |= (1 << USART_TXEN_bp);	// TX enable ON
-    USART2.CTRLA |= (1 << USART_DREIE_bp);	// Data Register Empty Interrupt Enable ON
-}
-
-void USART2_send_string(uint8_t *string, uint16_t index){
-	USART2_enable_TX();
-	//wait for Data Register to become ready 27.5.3
-	while(!(USART2.STATUS & (1 << USART_DREIF_bp))){;}
-	USART1.TXDATAL = string[index++];// send first char, interrupts deal with the rest
-}
 
 void TOGGLE_LED(){
 	PORTD.OUTTGL = 1 << LED_PIN;
-}
-
-void ADC_init(){
-	//PORTD1 is Time Interpolation pin
-    //Disable digital input buffer .. 18.3.2.1 and 18.3.2.3
-	//to reduce noise
-    PORTD.PIN1CTRL &= ~PORT_ISC_gm; //INTDISABLE
-    PORTD.PIN1CTRL |= PORT_ISC_INPUT_DISABLE_gc; //INPUT_DISABLE
-    PORTD.PIN1CTRL &= ~PORT_PULLUPEN_bm; //Disable pull-up resistor
-	//tau = 150 * 680 ~= 100ns
-	//V = 5V, so at tau we reach max 0.63*5 = 3.15V
-	//The board has the footprint for an external Vref at PD7
-	//If populated, the ADC ref V is:
-	VREF.ADC0REF = VREF_REFSEL_VREFA_gc;
-	//If not populated, the best ADC ref V is 4.096V, the diff is 0.946V
-	//which is just below 25% of our max value, so we lose 0.5 bits precision:
-	//VREF.ADC0REF = VREF_REFSEL_4V096_gc;
-	//
-	//We measure time IPOL at pin 7, ADC0 AIN1
-	ADC0.MUXPOS = ADC_MUXPOS_AIN1_gc;
-	//TODO: figure out CLK_PER
-	ADC0.CTRLC = ADC_PRESC_DIV4_gc;
-	//Just 1 sample, no accumulation
-	ADC0.CTRLB= ADC_WINCM_NONE_gc;
-	//Enable ADC in 12-bit mode
-	ADC0.CTRLA= ADC_ENABLE_bm | ADC_RESSEL_12BIT_gc;
-}
-
-void ADC_start(){
-	//enable interrupt
-	ADC0.INTCTRL = ADC_RESRDY_bm;
-	//start conversion
-	ADC0.COMMAND = ADC_STCONV_bm;
-	//TODO: change pin to digital output and write 0 to discharge the capacitor
 }
 
 void TOUCH_IRQ_init(){
@@ -227,23 +112,4 @@ void PORTS_init(){
 	//GPS_TXD is output on PORTD
 	PORTF.DIR = 1 << GPS_TXD_PIN;
 	PORTF.OUT = 0x00;
-}
-
-void USART2_init(void){
-	//PF0 = TXD
-	//PF1 = RXD
-	PORTMUX.USARTROUTEA &= ~(3 << PORTMUX_USART2_0_bp);	//clr bits 4 and 5
-    USART2.BAUD = (uint16_t)(USART2_BAUD_RATE(9600));
-	USART2.CTRLC = USART_CMODE_ASYNCHRONOUS_gc	//Async mode
-				 | USART_PMODE_DISABLED_gc		//no parity bit
-				 | USART_SBMODE_1BIT_gc			//1 stop bit
-				 | USART_CHSIZE_8BIT_gc; 		//8 bits/char
-	//17.3.3  Default pins for TXD RXD .. PF2 and PF3 not on device
-    USART2.CTRLB = (1 << USART_RXEN_bp)		// USART_RXEN = RX enable
-				 | (0 << USART_TXEN_bp)		// USART_TXEN = TX enable ... disabled
-				 | (1 << USART_RXMODE_0_bp);// USART_RXMODE_0_bm = normal speed mode
-    USART2.CTRLA = (1 << USART_RXCIE_bp)	// RX Complete Interrupt Enable
-				 | (0 << USART_TXCIE_bp)	// TX Complete Interrupt Enable ... disabled
-				 | (1 << USART_DREIE_bp);	// Data Register Empty Interrupt Enable
-	USART2.STATUS = 1 << USART_TXCIF_bp; //clear Transmit Complete Interrupt Flag
 }

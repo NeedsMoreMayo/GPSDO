@@ -60,7 +60,7 @@ TARGET = main
 OBJDIR = .
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c
+SRC = $(TARGET).c uart.c adc.c
 
 # List C++ source files here. (C dependencies are automatically generated.)
 # CPPSRC = $(TARGET).cpp analog.cpp config.cpp digital.cpp encoder.cpp i2clcd.cpp my_util.cpp newdelete.cpp pid.cpp temperature.cpp twimaster.cpp uart.cpp ControlState.cpp ProcValState.cpp SettingsState.cpp
