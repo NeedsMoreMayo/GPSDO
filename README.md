@@ -29,3 +29,12 @@ The output driver and clock dividers were copied from Bertrand Zauhar's GPSDO de
 ## The AVR-DB uC
 I originally planned on building it with an atmega. Then changed my mind to an STM32 with ChibiOS. Now I've chosen AVR32DB28. I hope to become familiar enough with it to help porting ChibiOS to the AVR-DX family.
 
+### Compilation
+Just type make, the makefile is a template from WinAVR I adapted.
+If your avr-gcc doesn't support this device, you probably need to add the support pack from MicroChip's site:
+1. goto http://packs.download.atmel.com/
+2. download the Atmel AVR-Dx Series Device Support. It's an archive. Uncompress it in ./xyz/
+3. copy ./xyz/gcc/dev/avr32db28/avrxmega3/crtavr32db28.o and libavr32db28.a to /yourGCCAVRpath/avr/lib/avrxmega3/
+4. copy ./xyz/gcc/dev/avr32db28/device-specs/specs-avr32db28 to /yourGCCAVRpath/avr/lib/avr-gcc/version/gcc/avr/subversion/device-specs/
+
+
