@@ -1,0 +1,47 @@
+(footprint "LTS7760" (version 20211014) (generator pcbnew)
+  (layer "F.Cu")
+  (tedit 0)
+  (attr through_hole)
+  (fp_text reference "REF**" (at 0 -11.962 unlocked) (layer "F.SilkS")
+    (effects (font (size 1 1) (thickness 0.15)))
+    (tstamp be1839ce-5a81-4c34-8608-09ca8aa8326e)
+  )
+  (fp_text value "LTS7760" (at 0 -10.414 unlocked) (layer "F.Fab")
+    (effects (font (size 1 1) (thickness 0.15)))
+    (tstamp 266780af-4d7f-4b32-bfe8-6c8f615fddb2)
+  )
+  (fp_line (start 6.3 9.45) (end 6.3 -9.45) (layer "F.CrtYd") (width 0.05) (tstamp 0ab86eee-8ae2-4d42-8392-5ecfc220e27e))
+  (fp_line (start -6.3 9.45) (end 6.3 9.45) (layer "F.CrtYd") (width 0.05) (tstamp b681560d-ad4a-42ab-8ed6-3bd6b1fcde27))
+  (fp_line (start 6.3 -9.46) (end -6.3 -9.46) (layer "F.CrtYd") (width 0.05) (tstamp d567c9b1-9336-4261-b2d7-0685f9d19223))
+  (fp_line (start -6.3 -9.45) (end -6.3 9.45) (layer "F.CrtYd") (width 0.05) (tstamp df0fd4bc-78c7-4d79-aa8b-b73d5858d1ee))
+  (pad "1" thru_hole rect (at -3.81 -7.62) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask) (tstamp a175d738-b840-4e25-9781-bd8d2b1bbda3))
+  (pad "2" thru_hole oval (at -3.81 -5.08) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask) (tstamp 5d762fc8-1a9d-40d2-ab2f-47a833cfde8d))
+  (pad "3" thru_hole oval (at -3.81 -2.54) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask) (tstamp a40aa5ff-25b5-4607-a4f7-a0af42809d1f))
+  (pad "6" thru_hole oval (at -3.81 5.08) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask) (tstamp fe5a02a0-cc36-463e-a2c8-55c073f161a0))
+  (pad "7" thru_hole oval (at -3.81 7.62) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask) (tstamp 6fab1784-1d56-47cc-9b9d-b4235b2517b8))
+  (pad "8" thru_hole oval (at 3.81 7.62) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask) (tstamp 7602086a-0cba-4fe9-8fd8-dbeb75376ddf))
+  (pad "9" thru_hole oval (at 3.81 5.08) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask) (tstamp 66e669f1-4d56-4821-9501-98f7daa90a51))
+  (pad "10" thru_hole oval (at 3.81 2.54) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask) (tstamp 255de0b2-0a1a-491f-ba75-5b34d4de7864))
+  (pad "11" thru_hole oval (at 3.81 0) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask) (tstamp 6b9e12a8-9e1e-4342-9ed5-bf6a265aae09))
+  (pad "13" thru_hole oval (at 3.81 -5.08) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask) (tstamp c1b1af6d-af04-441f-a988-1b58c11606a9))
+  (pad "14" thru_hole oval (at 3.81 -7.62) (size 1.6 1.6) (drill 0.8) (layers *.Cu *.Mask) (tstamp 602e922c-f4c5-445c-a91a-bfb1845ecffb))
+  (group "" (id 1cdcb53d-8a3f-4081-9576-f046649b65a3)
+    (members
+      255de0b2-0a1a-491f-ba75-5b34d4de7864
+      602e922c-f4c5-445c-a91a-bfb1845ecffb
+      66e669f1-4d56-4821-9501-98f7daa90a51
+      6b9e12a8-9e1e-4342-9ed5-bf6a265aae09
+      7602086a-0cba-4fe9-8fd8-dbeb75376ddf
+      c1b1af6d-af04-441f-a988-1b58c11606a9
+    )
+  )
+  (group "Left" (id 94314c46-89f4-4945-8d45-124404f6e2a7)
+    (members
+      5d762fc8-1a9d-40d2-ab2f-47a833cfde8d
+      6fab1784-1d56-47cc-9b9d-b4235b2517b8
+      a175d738-b840-4e25-9781-bd8d2b1bbda3
+      a40aa5ff-25b5-4607-a4f7-a0af42809d1f
+      fe5a02a0-cc36-463e-a2c8-55c073f161a0
+    )
+  )
+)
